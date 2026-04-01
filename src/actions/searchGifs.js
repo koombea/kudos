@@ -42,7 +42,8 @@ const registerSearchGifs = (app) => {
       const gifResults = await searchGifs(query);
 
       // Update modal with GIF results
-      const updatedModal = buildKudosModal(categories, locale, currentValues, gifResults, bankImages);
+      const gifEnabled = !!process.env.GIPHY_API_KEY;
+      const updatedModal = buildKudosModal(categories, locale, currentValues, gifResults, bankImages, gifEnabled);
 
       await client.views.update({
         view_id: view.id,

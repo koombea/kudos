@@ -14,9 +14,11 @@ const registerKudosCommand = (app) => {
         getActiveImages(),
       ]);
 
+      const gifEnabled = !!process.env.GIPHY_API_KEY;
+
       await client.views.open({
         trigger_id: body.trigger_id,
-        view: buildKudosModal(categories, locale, {}, [], bankImages),
+        view: buildKudosModal(categories, locale, {}, [], bankImages, gifEnabled),
       });
     } catch (error) {
       console.error('Error opening kudos modal:', error);

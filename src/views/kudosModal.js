@@ -1,6 +1,6 @@
 const { t } = require('../services/i18n');
 
-const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gifResults = [], bankImages = []) => {
+const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gifResults = [], bankImages = [], gifEnabled = true) => {
   // Recipients block
   const recipientsElement = {
     type: 'multi_users_select',
@@ -171,42 +171,48 @@ const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gif
       },
       element: channelElement,
     },
-    {
-      type: 'divider',
-    },
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: t('modal.gifSectionTitle', locale),
-      },
-    },
-    {
-      type: 'input',
-      block_id: 'gif_search_block',
-      optional: true,
-      label: {
-        type: 'plain_text',
-        text: t('modal.gifSearchLabel', locale),
-      },
-      element: gifSearchElement,
-      dispatch_action: false,
-    },
-    {
-      type: 'actions',
-      block_id: 'gif_actions_block',
-      elements: [
-        {
-          type: 'button',
-          action_id: 'search_gifs_button',
-          text: {
-            type: 'plain_text',
-            text: t('modal.gifSearchButton', locale),
-          },
-        },
-      ],
-    },
   ];
+
+  // GIF search section (only if Giphy is configured)
+  if (gifEnabled) {
+    blocks.push(
+      {
+        type: 'divider',
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: t('modal.gifSectionTitle', locale),
+        },
+      },
+      {
+        type: 'input',
+        block_id: 'gif_search_block',
+        optional: true,
+        label: {
+          type: 'plain_text',
+          text: t('modal.gifSearchLabel', locale),
+        },
+        element: gifSearchElement,
+        dispatch_action: false,
+      },
+      {
+        type: 'actions',
+        block_id: 'gif_actions_block',
+        elements: [
+          {
+            type: 'button',
+            action_id: 'search_gifs_button',
+            text: {
+              type: 'plain_text',
+              text: t('modal.gifSearchButton', locale),
+            },
+          },
+        ],
+      }
+    );
+  }
 
   // Build private_metadata with GIF URL mapping and image bank mapping
   const gifMap = {};
