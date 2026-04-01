@@ -1,6 +1,6 @@
 const { searchGifs } = require('../services/giphy');
 const { buildKudosModal } = require('../views/kudosModal');
-const { getActiveCategories } = require('../db/queries');
+const { getActiveCategories, getActiveImages } = require('../db/queries');
 const { getLocale } = require('../services/i18n');
 
 const registerSearchGifs = (app) => {
@@ -22,6 +22,7 @@ const registerSearchGifs = (app) => {
         gifQuery: values.gif_search_block?.gif_search_input?.value || '',
         selectedGif: values.gif_selection_block?.gif_selection?.selected_option?.value || null, // GIF ID
         imageUrl: values.image_url_block?.image_url?.value || '',
+        selectedBankImage: values.image_bank_block?.image_bank_selection?.selected_option?.value || null,
       };
 
       const query = currentValues.gifQuery;
@@ -30,17 +31,18 @@ const registerSearchGifs = (app) => {
         return;
       }
 
-      // Fetch categories and locale
-      const [categories, locale] = await Promise.all([
+      // Fetch categories, locale, and bank images
+      const [categories, locale, bankImages] = await Promise.all([
         getActiveCategories(),
         getLocale(userId, client),
+        getActiveImages(),
       ]);
 
       // Search GIFs
       const gifResults = await searchGifs(query);
 
       // Update modal with GIF results
-      const updatedModal = buildKudosModal(categories, locale, currentValues, gifResults);
+      const updatedModal = buildKudosModal(categories, locale, currentValues, gifResults, bankImages);
 
       await client.views.update({
         view_id: view.id,

@@ -1,6 +1,6 @@
 const { t } = require('../services/i18n');
 
-const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gifResults = []) => {
+const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gifResults = [], bankImages = []) => {
   // Recipients block
   const recipientsElement = {
     type: 'multi_users_select',
@@ -208,10 +208,15 @@ const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gif
     },
   ];
 
-  // Build private_metadata with GIF URL mapping
+  // Build private_metadata with GIF URL mapping and image bank mapping
   const gifMap = {};
   for (const gif of gifResults) {
     gifMap[gif.id] = gif.originalUrl;
+  }
+
+  const imageBankMap = {};
+  for (const img of bankImages) {
+    imageBankMap[String(img.id)] = img.url;
   }
 
   // Add GIF results if present
@@ -266,6 +271,67 @@ const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gif
     }
   }
 
+  // Image Bank section
+  if (bankImages.length > 0) {
+    const bankOptions = bankImages.map(img => ({
+      text: {
+        type: 'plain_text',
+        text: img.title,
+      },
+      value: String(img.id),
+    }));
+
+    const bankElement = {
+      type: 'static_select',
+      action_id: 'image_bank_selection',
+      placeholder: {
+        type: 'plain_text',
+        text: t('modal.imageBankPlaceholder', locale),
+      },
+      options: bankOptions,
+    };
+
+    if (currentValues.selectedBankImage) {
+      const selectedOption = bankOptions.find(o => o.value === currentValues.selectedBankImage);
+      if (selectedOption) {
+        bankElement.initial_option = selectedOption;
+      }
+    }
+
+    blocks.push({
+      type: 'divider',
+    });
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: t('modal.imageBankSectionTitle', locale),
+      },
+    });
+    blocks.push({
+      type: 'input',
+      block_id: 'image_bank_block',
+      optional: true,
+      label: {
+        type: 'plain_text',
+        text: t('modal.imageBankLabel', locale),
+      },
+      element: bankElement,
+    });
+
+    // Show preview of selected image
+    if (currentValues.selectedBankImage) {
+      const selectedImg = bankImages.find(img => String(img.id) === currentValues.selectedBankImage);
+      if (selectedImg) {
+        blocks.push({
+          type: 'image',
+          image_url: selectedImg.url,
+          alt_text: selectedImg.title,
+        });
+      }
+    }
+  }
+
   // Image URL field always at the bottom
   blocks.push({
     type: 'divider',
@@ -299,8 +365,15 @@ const buildKudosModal = (categories = [], locale = 'en', currentValues = {}, gif
     blocks,
   };
 
+  const metadata = {};
   if (Object.keys(gifMap).length > 0) {
-    modal.private_metadata = JSON.stringify({ gifMap });
+    metadata.gifMap = gifMap;
+  }
+  if (Object.keys(imageBankMap).length > 0) {
+    metadata.imageBankMap = imageBankMap;
+  }
+  if (Object.keys(metadata).length > 0) {
+    modal.private_metadata = JSON.stringify(metadata);
   }
 
   return modal;
